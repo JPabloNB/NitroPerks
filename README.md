@@ -16,5 +16,9 @@ With the help of this plugin you'll be able to:
 
 # Changelog
 
+### v1.3.9 [01/03/2022]
+* Fixed profile avatar didn't show up.
+* Fixed profile banner didn't show up.
+
 ### v1.3.8 [11/02/2022]
 * Fixed compatibility with ZeresPlugin
