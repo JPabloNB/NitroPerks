@@ -48,16 +48,21 @@ module.exports = (() => {
                     "github_username": "JPabloNB"
                 }
             ],
-            "version": "1.3.8",
+            "version": "1.3.9",
             "description": "Set clientsided animated avatar and profile banner, share your screen at 60fps 1080P and use cross-server and animated emojis everywhere! You still won't be able to upload 100MB files though :<",
             "github": "https://github.com/JPabloNB/NitroPerks",
             "github_raw": "https://raw.githubusercontent.com/JPabloNB/NitroPerks/main/NitroPerks.plugin.js"
         },
 		"changelog": [
 			{
-				"title": "Fixed compatibility with ZeresPlugin",
+				"title": "Fixed profile avatar",
 				"type": "fixed",
-                "items": ["It's been fixed compatiblity with ZeresPlugin 2.0.0 which has removed DiscordAPI"]
+                "items": ["Fixed profile avatar didn't show up"]
+			},
+			{
+				"title": "Fixed profile banner",
+				"type": "fixed",
+                "items": ["Fixed profile banner didn't show up"]
 			},
 		],
         "main": "NitroPerks.plugin.js"
@@ -111,7 +116,9 @@ module.exports = (() => {
                     "screenSharing": true,
                     "emojiBypass": true,
                     "clientsidePfp": false,
+                    "clientsideBanner": false,
                     "pfpUrl": "",
+                    "bannerUrl": "",
                 };
                 settings = Utilities.loadSettings(this.getName(), this.defaultSettings);
                 originalNitroStatus = 0;
@@ -211,66 +218,50 @@ module.exports = (() => {
 
                     if (this.settings.clientsidePfp && this.settings.pfpUrl) {
                         this.clientsidePfp = setInterval(()=>{
-                            document.querySelectorAll(`[src="https://cdn.discordapp.com/avatars/${DiscordModules.UserStore.getCurrentUser().id}/${DiscordModules.UserStore.getCurrentUser().avatar}.webp?size=128"]`).forEach(avatar=>{
+                            document.querySelectorAll(`[src="https://cdn.discordapp.com/avatars/${DiscordModules.UserStore.getCurrentUser().id}/${DiscordModules.UserStore.getCurrentUser().avatar}.webp?size=32"]`).forEach(avatar => {
                                 avatar.src = this.settings.pfpUrl
-                            })
-                            document.querySelectorAll(`[src="https://cdn.discordapp.com/avatars/${DiscordModules.UserStore.getCurrentUser().id}/${DiscordModules.UserStore.getCurrentUser().avatar}.png?size=128"]`).forEach(avatar=>{
+                            });
+                            document.querySelectorAll(`[src="https://cdn.discordapp.com/avatars/${DiscordModules.UserStore.getCurrentUser().id}/${DiscordModules.UserStore.getCurrentUser().avatar}.webp?size=80"]`).forEach(avatar => {
                                 avatar.src = this.settings.pfpUrl
-                            })
-                            document.querySelectorAll(`.avatarContainer-28iYmV.avatar-3tNQiO.avatarSmall-1PJoGO`).forEach(avatar=>{
-                                if (!avatar.style.backgroundImage.includes("https://cdn.discordapp.com/avatars/" + DiscordModules.UserStore.getCurrentUser().id + "/" + DiscordModules.UserStore.getCurrentUser().avatar + ".png?size=128")) return;
+                            });
+                            document.querySelectorAll(`[src="https://cdn.discordapp.com/avatars/${DiscordModules.UserStore.getCurrentUser().id}/${DiscordModules.UserStore.getCurrentUser().avatar}.webp?size=128"]`).forEach(avatar => {
+                                avatar.src = this.settings.pfpUrl
+                            });
+                            document.querySelectorAll(`[class*="avatarContainer-"][class*="avatar-"][class*="avatarSmall-"]`).forEach(avatar => {
+                                if (!avatar.style.backgroundImage.includes("https://cdn.discordapp.com/avatars/" + DiscordModules.UserStore.getCurrentUser().id + "/" + DiscordModules.UserStore.getCurrentUser().avatar)) return;
                                 avatar.style = `background-image: url("${this.settings.pfpUrl}");`
-                            })
-                        }, 100)
+                            });
+                        }, 100);
                     }
-                    if (!this.settings.clientsidePfp) this.removeClientsidePfp()
+                    if (!this.settings.clientsidePfp) this.removeClientsidePfp();
 						
 					if (this.settings.clientsideBanner && this.settings.bannerUrl) {
+                        DiscordModules.UserStore.getCurrentUser().banner = this.settings.bannerUrl;
                         this.clientsideBanner = setInterval(()=>{
-                            document.querySelectorAll(`[data-user-id="${DiscordModules.UserStore.getCurrentUser().id}"] div [class*="popoutBanner-"]`).forEach(banner=>{
-                                banner.style = `background-image: url("${this.settings.bannerUrl}") !important; background-repeat: no-repeat; background-position: 50%; background-size: cover; width: 300px; height: 120px;`
-                            })
-							document.querySelectorAll(`[data-user-id="${DiscordModules.UserStore.getCurrentUser().id}"] div [class*="profileBanner-"]`).forEach(banner=>{
-                                banner.style = `background-image: url("${this.settings.bannerUrl}") !important; background-repeat: no-repeat; background-position: 50%; background-size: cover; width: 600px; height: 240px;`
-                            })
-							document.querySelectorAll(`[class*="settingsBanner-"]`).forEach(banner=>{
-                                banner.style = `background-image: url("${this.settings.bannerUrl}") !important; background-repeat: no-repeat; background-position: 50%; background-size: cover;`
-                            })
-							document.querySelectorAll(`[data-user-id="${DiscordModules.UserStore.getCurrentUser().id}"] .avatarWrapperNormal-26WQIb`).forEach(avatar=>{
-                                avatar.style = `top: 76px;`
-                            })
-                        }, 100)
+                            document.querySelectorAll(`[class*="bannerPremium-"]`).forEach(banner => {
+                                if(!banner.style.backgroundImage.includes(`https://cdn.discordapp.com/banners/${DiscordModules.UserStore.getCurrentUser().id}/`)) return;
+                                banner.style.backgroundImage = `url("${this.settings.bannerUrl}")`;
+                            });
+                        }, 100);
                     }
                     if (!this.settings.clientsideBanner) this.removeClientsideBanner()
                 }
                 removeClientsidePfp() {
                     clearInterval(this.clientsidePfp);
-                    document.querySelectorAll(`[src="${this.settings.pfpUrl}"]`).forEach(avatar=>{
-                        avatar.src = "https://cdn.discordapp.com/avatars/" + DiscordModules.UserStore.getCurrentUser().id + "/" + DiscordModules.UserStore.getCurrentUser().avatar + ".webp?size=128";
+                    document.querySelectorAll(`[src="${this.settings.pfpUrl}"]`).forEach(avatar => {
+                        avatar.src = DiscordModules.UserStore.getCurrentUser().getAvatarURL();
                     });
-                    document.querySelectorAll(`.avatarContainer-28iYmV.avatar-3tNQiO.avatarSmall-1PJoGO`).forEach((avatar) => {
+                    document.querySelectorAll(`[class*="avatarContainer-"][class*="avatar-"][class*="avatarSmall-"]`).forEach(avatar => {
                         if (!avatar.style.backgroundImage.includes(this.settings.pfpUrl)) return;
-                        avatar.style = `background-image: url("https://cdn.discordapp.com/avatars/${DiscordModules.UserStore.getCurrentUser().id}/${DiscordModules.UserStore.getCurrentUser().avatar}.png?size=128");`;
+                        avatar.style.backgroundImage = `url("https://cdn.discordapp.com/avatars/${DiscordModules.UserStore.getCurrentUser().id}/${DiscordModules.UserStore.getCurrentUser().avatar}.webp?size=24"`;
                     });
                 }
 				removeClientsideBanner() {
-                    clearInterval(this.clientsideBanner)
-                    document.querySelectorAll(`[data-user-id="${DiscordModules.UserStore.getCurrentUser().id}"] div [class*="popoutBanner-"]`).forEach((banner) => {
-                        banner.style = `background-image: none !important; background-repeat: none; background-position: none; background-size: none; width: none; height: none;`
-                    });
-					document.querySelectorAll(`[data-user-id="${DiscordModules.UserStore.getCurrentUser().id}"] div [class*="profileBanner-"]`).forEach((banner) => {
-                        banner.style = `background-image: none !important; background-repeat: none; background-position: none; background-size: none; width: none; height: none;`
-                    });
-					document.querySelectorAll(`[class*="settingsBanner-"]`).forEach(banner=>{
-                        banner.style = `background-image: none !important; background-repeat: none; background-position: none; background-size: none;`
-                    });
-					document.querySelectorAll(`[data-user-id="${DiscordModules.UserStore.getCurrentUser().id}"] .avatarWrapperNormal-26WQIb`).forEach((avatar) => {
-                        avatar.style = `top: none;`
-                    });
+                    DiscordModules.UserStore.getCurrentUser().banner = null;
                 }
                 onStart() {
                     this.originalNitroStatus = DiscordModules.UserStore.getCurrentUser().premiumType;
-                    this.saveAndUpdate()
+                    this.saveAndUpdate();
                     DiscordModules.UserStore.getCurrentUser().premiumType = 2;
                 }
 
